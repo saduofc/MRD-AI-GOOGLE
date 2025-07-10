@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Google Search Chatbot</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin:0; background:#f0f4f8; }
+        #chatbox { max-width:600px; margin: 50px auto; background:#fff; padding:20px; border-radius:8px; box-shadow:0 4px 10px rgba(0,0,0,0.1); height: 400px; overflow-y: auto; display:flex; flex-direction: column; }
+        .message { margin-bottom: 15px; max-width: 80%; padding: 10px 15px; border-radius: 15px; }
+        .user { background:#007bff; color:#fff; align-self: flex-end; }
+        .bot { background:#e4e6eb; color:#333; align-self: flex-start; }
+        #input-form { max-width:600px; margin: auto; display: flex; margin-top: 10px; }
+        #question { flex:1; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 15px 0 0 15px; outline:none; }
+        #send-btn { background:#007bff; border:none; color:#fff; padding: 10px 20px; font-size: 16px; border-radius: 0 15px 15px 0; cursor: pointer; }
+        #send-btn:hover { background:#0056b3; }
+    </style>
+</head>
+<body>
+    <div id="chatbox"></div>
+    <form id="input-form">
+        <input type="text" id="question" placeholder="ඔබේ ප්‍රශ්නය මෙහි ඇතුලත් කරන්න..." autocomplete="off" required />
+        <button type="submit" id="send-btn">Send</button>
+    </form>
+
+    <script>
+        const chatbox = document.getElementById('chatbox');
+        const inputForm = document.getElementById('input-form');
+        const questionInput = document.getElementById('question');
+
+        function addMessage(text, sender) {
+            const msgDiv = document.createElement('div');
+            msgDiv.classList.add('message');
+            msgDiv.classList.add(sender);
+            msgDiv.textContent = text;
+            chatbox.appendChild(msgDiv);
+            chatbox.scrollTop = chatbox.scrollHeight;
+        }
+
+        inputForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const question = questionInput.value.trim();
+            if (!question) return;
+            addMessage(question, 'user');
+            questionInput.value = '';
+            addMessage('Bot is typing...', 'bot');
+
+            try {
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({question})
+                });
+                const data = await response.json();
+                chatbox.lastChild.textContent = data.answer;
+            } catch (error) {
+                chatbox.lastChild.textContent = 'Error: Unable to get answer.';
+            }
+        });
+    </script>
+</body>
+</html>
